@@ -58,31 +58,51 @@ export default function Index() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen gap-8">
-      <h1 className="text-2xl font-bold">Phân tích hình ảnh phổi</h1>
+    <div className="flex flex-col items-center min-h-screen px-4 py-6 bg-slate-50">
+      {/* Logo */}
+      <div className="flex flex-col items-center gap-4">
+        <img
+          src="/Logo_ND2.png"
+          alt="Logo Bệnh viện Nhi Đồng 2"
+          className="w-24 h-auto"
+        />
+        <h1 className="text-3xl font-bold text-center text-gray-800">
+          Phân tích hình ảnh phổi
+        </h1>
+        <p className="text-gray-600 text-center max-w-md">
+          Tải lên ảnh X-quang của bé để được phân tích tự động bằng AI
+        </p>
+      </div>
+
+      {/* Form */}
       <form
         onSubmit={handleSubmit}
-        className="flex flex-col gap-4 items-center justify-center"
+        className="flex flex-col items-center justify-center gap-4 w-full max-w-md mt-6"
       >
-        <div className="flex justify-center items-center">
+        <div className="flex justify-center">
           <input
             type="file"
             accept=".dcm,image/png,image/jpeg"
             onChange={handleFileChange}
-            className="block mx-auto"
+            className="block mx-auto text-sm text-gray-500"
+            style={{ textAlign: "center" }}
           />
         </div>
         <button
           type="submit"
           disabled={!file || loading}
-          className="px-4 py-2 bg-blue-600 text-white rounded disabled:opacity-50"
+          className="w-full py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition disabled:opacity-50"
         >
           {loading ? "Đang phân tích..." : "Phân tích"}
         </button>
       </form>
-      {error && <div className="text-red-500">{error}</div>}
+
+      {/* Error */}
+      {error && <div className="text-red-500 mt-4">{error}</div>}
+
+      {/* Result */}
       {result && result.success && (
-        <div className="mt-4 p-4 border rounded bg-gray-50 w-full max-w-md">
+        <div className="mt-6 p-4 border rounded bg-gray-50 w-full max-w-md">
           <h2 className="font-semibold mb-2 text-orange-400">
             Kết quả phân tích:
           </h2>
@@ -114,6 +134,12 @@ export default function Index() {
           </div>
         </div>
       )}
+
+      {/* Footer */}
+      <footer className="text-sm text-gray-500 text-center mt-8">
+        Built by <b>Quang Le</b> with{" "}
+        <span className="animate-pulse inline-block">🧡</span>
+      </footer>
     </div>
   );
 }
