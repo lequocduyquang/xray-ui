@@ -42,7 +42,8 @@ export default function Index() {
     setResult(null);
 
     try {
-      const res = await fetch("http://localhost:3000/api/analyze", {
+      const apiUrl = `${import.meta.env.VITE_BACKEND_API_URL}/api/analyze`;
+      const res = await fetch(apiUrl, {
         method: "POST",
         body: formData,
       });
