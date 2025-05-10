@@ -42,7 +42,7 @@ export default function Index() {
     setResult(null);
 
     try {
-      const apiUrl = `${import.meta.env.VITE_BACKEND_API_URL}/api/analyze`;
+      const apiUrl = `https://xray-diagnosis-ai.onrender.com/api/analyze`;
       const res = await fetch(apiUrl, {
         method: "POST",
         body: formData,
