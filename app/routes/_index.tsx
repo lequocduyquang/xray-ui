@@ -89,7 +89,7 @@ export default function Index() {
         <div className="flex flex-col items-center">
           <input
             type="file"
-            accept=".dcm,image/png,image/jpeg"
+            accept=".dcm,.dicom,image/png,image/jpeg"
             onChange={handleFileChange}
             className="block mx-auto text-sm text-gray-500"
             style={{ textAlign: "center" }}
