@@ -50,7 +50,7 @@ export default function Index() {
     setResult(null);
 
     try {
-      const apiUrl = `${import.meta.env.VITE_BACKEND_API_URL}/api/analyze`;
+      const apiUrl = `https://xray-diagnosis-ai.onrender.com/api/analyze`;
       const res = await fetch(apiUrl, {
         method: "POST",
         body: formData,
@@ -81,7 +81,6 @@ export default function Index() {
           Tải lên ảnh X-quang của bé để được phân tích tự động bằng AI
         </p>
       </div>
-
       {/* Form */}
       <form
         onSubmit={handleSubmit}
@@ -107,10 +106,8 @@ export default function Index() {
           {loading ? "Đang phân tích..." : "Phân tích"}
         </button>
       </form>
-
       {/* Error */}
       {error && <div className="text-red-500 mt-4">{error}</div>}
-
       {/* Result */}
       {result && result.success && (
         <div className="mt-6 p-4 border rounded bg-gray-50 w-full max-w-md">
@@ -187,6 +184,12 @@ export default function Index() {
           </div>
         </div>
       )}
+
+      {/* Footer */}
+      <footer className="text-sm text-gray-500 text-center mt-8">
+        Built by <b>Quang Le</b> with{" "}
+        <span className="animate-pulse inline-block">🧡</span>
+      </footer>
     </div>
   );
 }
