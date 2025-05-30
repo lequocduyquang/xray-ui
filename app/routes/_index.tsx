@@ -6,13 +6,21 @@ export const meta: MetaFunction = () => [
   { name: "description", content: "Upload X-ray để kiểm tra phổi" },
 ];
 
+type MultiLabel = {
+  label: string;
+  score: number;
+};
+
 type AnalyzeResponse = {
   success: boolean;
+  stage: string;
   message: string;
   data: {
-    probabilities: number[];
-    predictedClass: number;
+    binaryProbabilities: number[];
+    predictedClass: string;
     classLabels: string[];
+    multiLabelTop: Record<string, MultiLabel>;
+    allMultiLabelScores: MultiLabel[];
   };
 };
 
@@ -42,7 +50,7 @@ export default function Index() {
     setResult(null);
 
     try {
-      const apiUrl = `https://xray-diagnosis-ai.onrender.com/api/analyze`;
+      const apiUrl = `${import.meta.env.VITE_BACKEND_API_URL}/api/analyze`;
       const res = await fetch(apiUrl, {
         method: "POST",
         body: formData,
@@ -79,7 +87,7 @@ export default function Index() {
         onSubmit={handleSubmit}
         className="flex flex-col items-center justify-center gap-4 w-full max-w-md mt-6"
       >
-        <div className="flex justify-center">
+        <div className="flex flex-col items-center">
           <input
             type="file"
             accept=".dcm,image/png,image/jpeg"
@@ -87,6 +95,9 @@ export default function Index() {
             className="block mx-auto text-sm text-gray-500"
             style={{ textAlign: "center" }}
           />
+          {file && (
+            <span className="mt-2 text-sm text-orange-400">{file.name}</span>
+          )}
         </div>
         <button
           type="submit"
@@ -107,39 +118,75 @@ export default function Index() {
             Kết quả phân tích:
           </h2>
           <div className="mb-2">
-            <span className="font-medium text-gray-800">Chẩn đoán:&nbsp;</span>
+            <span className="font-medium text-gray-800">
+              Chẩn đoán chính:&nbsp;
+            </span>
             <span
               className={
-                result.data.classLabels[result.data.predictedClass] ===
-                "Pneumonia"
+                result.data.predictedClass === "Pneumonia"
                   ? "text-red-600 font-bold"
                   : "text-green-600 font-bold"
               }
             >
-              {result.data.classLabels[result.data.predictedClass] ===
-              "Pneumonia"
+              {result.data.predictedClass === "Pneumonia"
                 ? "Bệnh nhân có dấu hiệu viêm phổi."
                 : "Phổi bình thường."}
             </span>
           </div>
           <div className="mb-2">
-            <span className="font-medium text-blue-400">Xác suất:</span>
-            <ul className="list-disc list-inside">
+            <span className="font-medium text-blue-600">
+              Xác suất nhị phân:
+            </span>
+            <ul className="list-disc list-inside ml-4">
               {result.data.classLabels.map((label, idx) => (
-                <li key={label} className="text-gray-400">
-                  {label}: {(result.data.probabilities[idx] * 100).toFixed(2)}%
+                <li key={label} className="text-gray-700">
+                  {label}:{" "}
+                  {(result.data.binaryProbabilities[idx] * 100).toFixed(2)}%
                 </li>
               ))}
             </ul>
           </div>
+          <div className="mb-2">
+            <span className="font-medium text-purple-600">
+              Top chẩn đoán phụ:
+            </span>
+            <ul className="list-disc list-inside ml-4">
+              {Object.values(result.data.multiLabelTop).map((item, idx) => (
+                <li key={idx} className="text-gray-700">
+                  {item.label}: {(item.score * 100).toFixed(2)}%
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="mb-2">
+            <span className="font-medium text-indigo-600">
+              Tất cả chẩn đoán phụ:
+            </span>
+            <table className="min-w-full text-xs mt-2">
+              <thead>
+                <tr>
+                  <th className="text-left pr-4">Tên</th>
+                  <th className="text-left">Xác suất</th>
+                </tr>
+              </thead>
+              <tbody>
+                {result.data.allMultiLabelScores.map((item) => (
+                  <tr key={item.label}>
+                    <td className="pr-4">{item.label}</td>
+                    <td>{(item.score * 100).toFixed(2)}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="text-xs text-gray-400 mt-2">
+            <span>Kết quả chi tiết:</span>
+            <pre className="bg-gray-100 p-2 rounded overflow-x-auto">
+              {JSON.stringify(result, null, 2)}
+            </pre>
+          </div>
         </div>
       )}
-
-      {/* Footer */}
-      <footer className="text-sm text-gray-500 text-center mt-8">
-        Built by <b>Quang Le</b> with{" "}
-        <span className="animate-pulse inline-block">🧡</span>
-      </footer>
     </div>
   );
 }
