@@ -3,7 +3,10 @@ import type { MetaFunction } from "@remix-run/node";
 
 export const meta: MetaFunction = () => [
   { title: "Phân tích hình ảnh phổi" },
-  { name: "description", content: "Upload X-ray để kiểm tra phổi" },
+  {
+    name: "description",
+    content: "Upload X-ray và chẩn đoán lâm sàng để kiểm tra phổi",
+  },
 ];
 
 type MultiLabel = {
@@ -16,19 +19,38 @@ type AnalyzeResponse = {
   stage: string;
   message: string;
   data: {
-    binaryProbabilities: number[];
+    clinical_info?: {
+      initial_diagnosis?: string;
+      symptoms?: string[];
+    };
+    binaryProbabilities: Record<string, number>;
     predictedClass: string;
     classLabels: string[];
     multiLabelTop: Record<string, MultiLabel>;
     allMultiLabelScores: MultiLabel[];
+    warnings?: string[];
   };
 };
 
 export default function Index() {
   const [file, setFile] = useState<File | null>(null);
+  const [clinicalInfo, setClinicalInfo] = useState<{
+    initial_diagnosis: string;
+    symptoms: string[];
+  }>({ initial_diagnosis: "", symptoms: [] });
   const [result, setResult] = useState<AnalyzeResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const validLabels = [
+    "Normal",
+    "Pneumonia",
+    "Bronchitis",
+    "Brocho-pneumonia",
+    "Other disease",
+    "Bronchiolitis",
+  ];
+  const symptomOptions = ["fever", "dyspnea", "cough", "wheezing"];
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -38,12 +60,29 @@ export default function Index() {
     }
   };
 
+  const handleDiagnosisChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setClinicalInfo({ ...clinicalInfo, initial_diagnosis: e.target.value });
+  };
+
+  const handleSymptomChange = (symptom: string) => {
+    setClinicalInfo((prev) => {
+      const symptoms = prev.symptoms.includes(symptom)
+        ? prev.symptoms.filter((s) => s !== symptom)
+        : [...prev.symptoms, symptom];
+      return { ...prev, symptoms };
+    });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file) return;
+    if (!file) {
+      setError("Vui lòng chọn file ảnh X-quang!");
+      return;
+    }
 
     const formData = new FormData();
     formData.append("image", file);
+    formData.append("clinical_info", JSON.stringify(clinicalInfo));
 
     setLoading(true);
     setError(null);
@@ -57,9 +96,11 @@ export default function Index() {
       });
       if (!res.ok) throw new Error("API request failed");
       const data: AnalyzeResponse = await res.json();
+      if (!data.success)
+        throw new Error(data.message || "Phân tích không thành công");
       setResult(data);
-    } catch {
-      setError("Có lỗi xảy ra khi gửi file hoặc gọi API.");
+    } catch (err: any) {
+      setError(err.message || "Có lỗi xảy ra khi gửi file hoặc gọi API.");
     } finally {
       setLoading(false);
     }
@@ -78,7 +119,8 @@ export default function Index() {
           Phân tích hình ảnh phổi
         </h1>
         <p className="text-gray-600 text-center max-w-md">
-          Tải lên ảnh X-quang của bé để được phân tích tự động bằng AI
+          Tải lên ảnh X-quang và nhập thông tin lâm sàng để phân tích tự động
+          bằng AI
         </p>
       </div>
       {/* Form */}
@@ -86,7 +128,10 @@ export default function Index() {
         onSubmit={handleSubmit}
         className="flex flex-col items-center justify-center gap-4 w-full max-w-md mt-6"
       >
-        <div className="flex flex-col items-center">
+        <div className="flex flex-col items-center w-full">
+          <label className="text-sm font-medium text-gray-700 mb-1">
+            Chọn ảnh X-quang
+          </label>
           <input
             type="file"
             accept=".dcm,.dicom,image/png,image/jpeg"
@@ -97,6 +142,48 @@ export default function Index() {
           {file && (
             <span className="mt-2 text-sm text-orange-400">{file.name}</span>
           )}
+        </div>
+        <div className="flex flex-col w-full">
+          <label className="text-sm font-medium text-gray-700 mb-1">
+            Chẩn đoán ban đầu
+          </label>
+          <select
+            value={clinicalInfo.initial_diagnosis}
+            onChange={handleDiagnosisChange}
+            className="w-full p-2 border rounded text-gray-700"
+          >
+            <option value="">Chọn chẩn đoán</option>
+            {validLabels.map((label) => (
+              <option key={label} value={label}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="flex flex-col w-full">
+          <label className="text-sm font-medium text-gray-700 mb-1">
+            Triệu chứng
+          </label>
+          <div className="flex flex-wrap gap-4">
+            {symptomOptions.map((symptom) => (
+              <label key={symptom} className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={clinicalInfo.symptoms.includes(symptom)}
+                  onChange={() => handleSymptomChange(symptom)}
+                />
+                {symptom === "fever"
+                  ? "Sốt"
+                  : symptom === "dyspnea"
+                  ? "Khó thở"
+                  : symptom === "cough"
+                  ? "Ho"
+                  : symptom === "wheezing"
+                  ? "Thở khò khè"
+                  : symptom}
+              </label>
+            ))}
+          </div>
         </div>
         <button
           type="submit"
@@ -114,10 +201,39 @@ export default function Index() {
           <h2 className="font-semibold mb-2 text-orange-400">
             Kết quả phân tích:
           </h2>
+          {result.data.clinical_info && (
+            <div className="mb-2">
+              <span className="font-medium text-gray-800">
+                Thông tin lâm sàng:
+              </span>
+              <ul className="list-disc list-inside ml-4 text-gray-700">
+                <li>
+                  Chẩn đoán ban đầu:{" "}
+                  {result.data.clinical_info.initial_diagnosis || "Không có"}
+                </li>
+                <li>
+                  Triệu chứng:{" "}
+                  {result.data.clinical_info.symptoms?.length
+                    ? result.data.clinical_info.symptoms
+                        .map((s) =>
+                          s === "fever"
+                            ? "Sốt"
+                            : s === "dyspnea"
+                            ? "Khó breathing"
+                            : s === "cough"
+                            ? "Ho"
+                            : s === "wheezing"
+                            ? "Thở khò khè"
+                            : s
+                        )
+                        .join(", ")
+                    : "Không có"}
+                </li>
+              </ul>
+            </div>
+          )}
           <div className="mb-2">
-            <span className="font-medium text-gray-800">
-              Chẩn đoán chính:&nbsp;
-            </span>
+            <span className="font-medium text-gray-800">Chẩn đoán chính: </span>
             <span
               className={
                 result.data.predictedClass === "Pneumonia"
@@ -135,10 +251,10 @@ export default function Index() {
               Xác suất nhị phân:
             </span>
             <ul className="list-disc list-inside ml-4">
-              {result.data.classLabels.map((label, idx) => (
+              {result.data.classLabels.map((label) => (
                 <li key={label} className="text-gray-700">
                   {label}:{" "}
-                  {(result.data.binaryProbabilities[idx] * 100).toFixed(2)}%
+                  {(result.data.binaryProbabilities[label] * 100).toFixed(2)}%
                 </li>
               ))}
             </ul>
@@ -147,7 +263,7 @@ export default function Index() {
             <span className="font-medium text-purple-600">
               Top chẩn đoán phụ:
             </span>
-            <ul className="list-disc list-inside ml-4">
+            <ul className="list-disc list-side ml-4">
               {Object.values(result.data.multiLabelTop).map((item, idx) => (
                 <li key={idx} className="text-gray-700">
                   {item.label}: {(item.score * 100).toFixed(2)}%
@@ -181,9 +297,18 @@ export default function Index() {
               </tbody>
             </table>
           </div>
+          {result.data.warnings && result.data.warnings.length > 0 && (
+            <div className="mb-2">
+              <span className="font-medium text-red-600">Cảnh báo:</span>
+              <ul className="list-disc list-inside ml-4 text-red-700">
+                {result.data.warnings.map((warning, idx) => (
+                  <li key={idx}>{warning}</li>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       )}
-
       {/* Footer */}
       <footer className="text-sm text-gray-500 text-center mt-8">
         Built by <b>Quang Le</b> with{" "}
