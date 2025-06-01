@@ -32,6 +32,17 @@ type AnalyzeResponse = {
   };
 };
 
+export function ErrorBoundary({ error }: { error: Error }) {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[40vh]">
+      <h2 className="text-xl font-bold text-red-600 mb-2">Đã xảy ra lỗi!</h2>
+      <p className="text-gray-500 mt-2">
+        Vui lòng thử lại hoặc liên hệ quản trị viên nếu lỗi tiếp tục xảy ra.
+      </p>
+    </div>
+  );
+}
+
 export default function Index() {
   const [file, setFile] = useState<File | null>(null);
   const [clinicalInfo, setClinicalInfo] = useState<{
@@ -42,14 +53,7 @@ export default function Index() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const validLabels = [
-    "Normal",
-    "Pneumonia",
-    "Bronchitis",
-    "Brocho-pneumonia",
-    "Other disease",
-    "Bronchiolitis",
-  ];
+  const validLabels = ["Normal", "Pneumonia"];
   const symptomOptions = ["fever", "dyspnea", "cough", "wheezing"];
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -129,28 +133,30 @@ export default function Index() {
         className="flex flex-col items-center justify-center gap-4 w-full max-w-md mt-6"
       >
         <div className="flex flex-col items-center w-full">
-          <label className="text-sm font-medium text-gray-700 mb-1">
+          <label className="text-pretty text-green-500 mb-2 text-center">
             Chọn ảnh X-quang
           </label>
-          <input
-            type="file"
-            accept=".dcm,.dicom,image/png,image/jpeg"
-            onChange={handleFileChange}
-            className="block mx-auto text-sm text-gray-500"
-            style={{ textAlign: "center" }}
-          />
+          <div className="flex justify-center w-full">
+            <input
+              type="file"
+              accept=".dcm,.dicom,image/png,image/jpeg"
+              onChange={handleFileChange}
+              className="text-sm text-gray-500"
+              style={{ textAlign: "center" }}
+            />
+          </div>
           {file && (
-            <span className="mt-2 text-sm text-orange-400">{file.name}</span>
+            <span className="mt-2 text-sm text-blue-400">{file.name}</span>
           )}
         </div>
-        <div className="flex flex-col w-full">
-          <label className="text-sm font-medium text-gray-700 mb-1">
+        <div className="flex flex-col items-center w-full">
+          <label className="text-pretty text-green-500 mb-2 text-center">
             Chẩn đoán ban đầu
           </label>
           <select
             value={clinicalInfo.initial_diagnosis}
             onChange={handleDiagnosisChange}
-            className="w-full p-2 border rounded text-gray-700"
+            className="w-3/4 p-2 border border-blue-300 rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
           >
             <option value="">Chọn chẩn đoán</option>
             {validLabels.map((label) => (
@@ -160,27 +166,33 @@ export default function Index() {
             ))}
           </select>
         </div>
-        <div className="flex flex-col w-full">
-          <label className="text-sm font-medium text-gray-700 mb-1">
+        <div className="flex flex-col items-center w-full">
+          <label className="text-pretty text-green-500 mb-2 text-center">
             Triệu chứng
           </label>
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap justify-center gap-4">
             {symptomOptions.map((symptom) => (
-              <label key={symptom} className="flex items-center gap-2 text-sm">
+              <label
+                key={symptom}
+                className="flex items-center bg-white dark:bg-white gap-2 text-sm px-3 py-1 rounded shadow-sm"
+              >
                 <input
                   type="checkbox"
                   checked={clinicalInfo.symptoms.includes(symptom)}
                   onChange={() => handleSymptomChange(symptom)}
+                  className="accent-blue-600 w-4 h-4"
                 />
-                {symptom === "fever"
-                  ? "Sốt"
-                  : symptom === "dyspnea"
-                  ? "Khó thở"
-                  : symptom === "cough"
-                  ? "Ho"
-                  : symptom === "wheezing"
-                  ? "Thở khò khè"
-                  : symptom}
+                <span className="font-medium text-gray-700 dark:text-black">
+                  {symptom === "fever"
+                    ? "Sốt"
+                    : symptom === "dyspnea"
+                    ? "Khó thở"
+                    : symptom === "cough"
+                    ? "Ho"
+                    : symptom === "wheezing"
+                    ? "Thở khò khè"
+                    : symptom}
+                </span>
               </label>
             ))}
           </div>
@@ -251,26 +263,30 @@ export default function Index() {
               Xác suất nhị phân:
             </span>
             <ul className="list-disc list-inside ml-4">
-              {result.data.classLabels.map((label) => (
-                <li key={label} className="text-gray-700">
-                  {label}:{" "}
-                  {(result.data.binaryProbabilities[label] * 100).toFixed(2)}%
-                </li>
-              ))}
+              {Object.entries(result.data.binaryProbabilities).map(
+                ([label, prob]) => (
+                  <li key={label} className="text-gray-700">
+                    {label}: {(prob * 100).toFixed(2)}%
+                  </li>
+                )
+              )}
             </ul>
           </div>
-          <div className="mb-2">
-            <span className="font-medium text-purple-600">
-              Top chẩn đoán phụ:
-            </span>
-            <ul className="list-disc list-side ml-4">
-              {Object.values(result.data.multiLabelTop).map((item, idx) => (
-                <li key={idx} className="text-gray-700">
-                  {item.label}: {(item.score * 100).toFixed(2)}%
-                </li>
-              ))}
-            </ul>
-          </div>
+          {result.data.multiLabelTop &&
+            Object.values(result.data.multiLabelTop).length > 0 && (
+              <div className="mb-2">
+                <span className="font-medium text-purple-600">
+                  Top chẩn đoán phụ:
+                </span>
+                <ul className="list-disc list-side ml-4">
+                  {Object.values(result.data.multiLabelTop).map((item, idx) => (
+                    <li key={idx} className="text-gray-700">
+                      {item.label}: {(item.score * 100).toFixed(2)}%
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           <div className="mb-2">
             <span className="font-medium text-indigo-600">
               Tất cả chẩn đoán phụ:
