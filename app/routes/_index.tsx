@@ -365,7 +365,7 @@ export default function Index() {
               </tbody>
             </table>
           </div>
-          {result.data.warnings && result.data.warnings.length > 0 && (
+          {/* {result.data.warnings && result.data.warnings.length > 0 && (
             <div className="mb-2">
               <span className="font-medium text-red-600">Cảnh báo:</span>
               <ul className="list-disc list-inside ml-4 text-red-700">
@@ -374,7 +374,7 @@ export default function Index() {
                 ))}
               </ul>
             </div>
-          )}
+          )} */}
 
           {/* Eigencam Button */}
           {result.data.cloudinaryId && result.data.modelName && (
