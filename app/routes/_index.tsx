@@ -29,6 +29,8 @@ type AnalyzeResponse = {
     multiLabelTop: Record<string, MultiLabel>;
     allMultiLabelScores: MultiLabel[];
     warnings?: string[];
+    cloudinaryId?: string;
+    modelName?: string;
   };
 };
 
@@ -52,6 +54,9 @@ export default function Index() {
   const [result, setResult] = useState<AnalyzeResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [eigencamUrl, setEigencamUrl] = useState<string | null>(null);
+  const [loadingEigencam, setLoadingEigencam] = useState(false);
+  const [eigencamError, setEigencamError] = useState<string | null>(null);
 
   const validLabels = ["Normal", "Pneumonia"];
   const symptomOptions = ["fever", "dyspnea", "cough", "wheezing"];
@@ -61,6 +66,8 @@ export default function Index() {
       setFile(e.target.files[0]);
       setResult(null);
       setError(null);
+      setEigencamUrl(null);
+      setEigencamError(null);
     }
   };
 
@@ -91,6 +98,8 @@ export default function Index() {
     setLoading(true);
     setError(null);
     setResult(null);
+    setEigencamUrl(null);
+    setEigencamError(null);
 
     try {
       const apiUrl = `https://xray-diagnosis-ai.onrender.com/api/analyze`;
@@ -107,6 +116,49 @@ export default function Index() {
       setError(err.message || "Có lỗi xảy ra khi gửi file hoặc gọi API.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleGenerateEigencam = async () => {
+    if (!result || !result.data.cloudinaryId || !result.data.modelName) {
+      setEigencamError(
+        "Không có ID Cloudinary hoặc tên model từ kết quả phân tích để tạo Eigencam."
+      );
+      return;
+    }
+
+    setLoadingEigencam(true);
+    setEigencamError(null);
+    setEigencamUrl(null);
+
+    try {
+      const eigencamApiUrl = `https://xray-diagnosis-cam.onrender.com/eigencam`;
+      const res = await fetch(eigencamApiUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          cloudinary_id: result.data.cloudinaryId,
+          model_name: result.data.modelName,
+        }),
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.detail || "API Eigencam request failed");
+      }
+
+      const data = await res.json();
+      if (data.success && data.eigencam_url) {
+        setEigencamUrl(data.eigencam_url);
+      } else {
+        throw new Error(data.error || "Tạo Eigencam không thành công");
+      }
+    } catch (err: any) {
+      setEigencamError(err.message || "Có lỗi xảy ra khi tạo Eigencam.");
+    } finally {
+      setLoadingEigencam(false);
     }
   };
 
@@ -245,7 +297,7 @@ export default function Index() {
             </div>
           )}
           <div className="mb-2">
-            <span className="font-medium text-gray-800">Chẩn đoán chính: </span>
+            <span className="font-medium text-gray-800">Chẩn đoán chính: </span>
             <span
               className={
                 result.data.predictedClass === "Pneumonia"
@@ -321,6 +373,34 @@ export default function Index() {
                   <li key={idx}>{warning}</li>
                 ))}
               </ul>
+            </div>
+          )}
+
+          {/* Eigencam Button */}
+          {result.data.cloudinaryId && result.data.modelName && (
+            <div className="mt-4">
+              <button
+                onClick={handleGenerateEigencam}
+                disabled={loadingEigencam}
+                className="w-full py-2 bg-green-600 text-white rounded hover:bg-green-700 transition disabled:opacity-50"
+              >
+                {loadingEigencam ? "Đang tạo Eigencam..." : "Tạo Eigencam"}
+              </button>
+              {eigencamError && (
+                <div className="text-red-500 mt-2">{eigencamError}</div>
+              )}
+              {eigencamUrl && (
+                <div className="mt-4">
+                  <h3 className="font-semibold text-gray-800 mb-2">
+                    Eigencam Result:
+                  </h3>
+                  <img
+                    src={eigencamUrl}
+                    alt="Eigencam Explanation"
+                    className="max-w-full h-auto border border-gray-300 rounded"
+                  />
+                </div>
+              )}
             </div>
           )}
         </div>
