@@ -343,27 +343,30 @@ export default function Index() {
             <span className="font-medium text-indigo-600">
               Tất cả chẩn đoán phụ:
             </span>
-            <table className="min-w-full text-xs mt-2 bg-white rounded shadow">
-              <thead>
-                <tr className="bg-blue-100">
-                  <th className="text-left pr-4 py-1 text-gray-700">Tên</th>
-                  <th className="text-left py-1 text-gray-700">Xác suất</th>
-                </tr>
-              </thead>
-              <tbody>
-                {result.data.allMultiLabelScores.map((item, idx) => (
-                  <tr
-                    key={item.label}
-                    className={idx % 2 === 0 ? "bg-gray-50" : "bg-gray-100"}
-                  >
-                    <td className="pr-4 py-1 text-gray-800">{item.label}</td>
-                    <td className="py-1 text-gray-800">
-                      {(item.score * 100).toFixed(2)}%
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            {Array.isArray(result.data.allMultiLabelScores) &&
+              result.data.allMultiLabelScores.length > 0 && (
+                <table className="min-w-full text-xs mt-2 bg-white rounded shadow">
+                  <thead>
+                    <tr className="bg-blue-100">
+                      <th className="text-left pr-4 py-1 text-gray-700">Tên</th>
+                      <th className="text-left py-1 text-gray-700">Xác suất</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {result.data.allMultiLabelScores.map((item, idx) => (
+                      <tr
+                        key={item.label}
+                        className={idx % 2 === 0 ? "bg-gray-50" : "bg-gray-100"}
+                      >
+                        <td className="pr-4 py-1 text-gray-800">{item.label}</td>
+                        <td className="py-1 text-gray-800">
+                          {(item.score * 100).toFixed(2)}%
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
           </div>
           {/* {result.data.warnings && result.data.warnings.length > 0 && (
             <div className="mb-2">
