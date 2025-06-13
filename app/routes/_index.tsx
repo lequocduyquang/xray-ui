@@ -132,7 +132,7 @@ export default function Index() {
     setEigencamUrl(null);
 
     try {
-      const eigencamApiUrl = `https://xray-diagnosis-cam.onrender.com/eigencam`;
+      const eigencamApiUrl = `https://xray-diagnosis-gradcam.onrender.com/eigencam`;
       const res = await fetch(eigencamApiUrl, {
         method: "POST",
         headers: {
@@ -387,7 +387,7 @@ export default function Index() {
                 disabled={loadingEigencam}
                 className="w-full py-2 bg-green-600 text-white rounded hover:bg-green-700 transition disabled:opacity-50"
               >
-                {loadingEigencam ? "Đang tạo Eigencam..." : "Tạo Eigencam"}
+                {loadingEigencam ? "Đang giải thích..." : "Kết quả giải thích AI"}
               </button>
               {eigencamError && (
                 <div className="text-red-500 mt-2">{eigencamError}</div>
