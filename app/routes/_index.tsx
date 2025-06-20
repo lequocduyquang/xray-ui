@@ -132,7 +132,7 @@ export default function Index() {
     setEigencamUrl(null);
 
     try {
-      const eigencamApiUrl = `https://xray-diagnosis-gradcam.onrender.com/eigencam`;
+      const eigencamApiUrl = `https://xray-diagnosis-gradcam.onrender.com/v2/eigencam`;
       const res = await fetch(eigencamApiUrl, {
         method: "POST",
         headers: {
