@@ -330,36 +330,124 @@ export default function Index() {
             ))}
           </select>
         </div>
-        <div className="flex flex-col items-center w-full">
-          <label className="text-pretty text-green-500 mb-2 text-center">
-            Triệu chứng
-          </label>
-          <div className="flex flex-wrap justify-center gap-4">
-            {symptomOptions.map((symptom) => (
-              <label
-                key={symptom}
-                className="flex items-center bg-white dark:bg-white gap-2 text-sm px-3 py-1 rounded shadow-sm"
-              >
-                <input
-                  type="checkbox"
-                  checked={clinicalInfo.symptoms.includes(symptom)}
-                  onChange={() => handleSymptomChange(symptom)}
-                  className="accent-blue-600 w-4 h-4"
-                />
-                <span className="font-medium text-gray-700 dark:text-black">
-                  {symptom === "fever"
-                    ? "Sốt"
-                    : symptom === "dyspnea"
-                    ? "Khó thở"
-                    : symptom === "cough"
-                    ? "Ho"
-                    : symptom === "wheezing"
-                    ? "Thở khò khè"
-                    : symptom}
-                </span>
-              </label>
-            ))}
+        <div className="w-full bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-5 border border-green-100 shadow-sm">
+          <div className="text-center mb-4">
+            <h3 className="text-lg font-semibold text-green-700 mb-1 flex items-center justify-center gap-2">
+              <span className="text-xl">🩺</span>
+              Triệu chứng lâm sàng
+            </h3>
+            <p className="text-sm text-green-600">Chọn các triệu chứng mà bệnh nhân đang gặp phải</p>
           </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {symptomOptions.map((symptom) => {
+              const isChecked = clinicalInfo.symptoms.includes(symptom);
+                             const symptomConfig = {
+                 fever: { icon: "🌡️", label: "Sốt", color: "red" },
+                 dyspnea: { icon: "💨", label: "Khó thở", color: "blue" },
+                 cough: { icon: "🤧", label: "Ho", color: "orange" },
+                 wheezing: { icon: "🎵", label: "Thở khò khè", color: "purple" }
+               }[symptom] || { icon: "📋", label: symptom, color: "gray" };
+              
+              return (
+                <label
+                  key={symptom}
+                  className={`
+                    relative flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer 
+                    transition-all duration-200 ease-in-out transform hover:scale-[1.02]
+                                         ${isChecked 
+                       ? symptom === 'fever' ? 'bg-red-50 border-red-300 shadow-md ring-2 ring-red-200'
+                         : symptom === 'dyspnea' ? 'bg-blue-50 border-blue-300 shadow-md ring-2 ring-blue-200'
+                         : symptom === 'cough' ? 'bg-orange-50 border-orange-300 shadow-md ring-2 ring-orange-200'
+                         : symptom === 'wheezing' ? 'bg-purple-50 border-purple-300 shadow-md ring-2 ring-purple-200'
+                         : 'bg-gray-50 border-gray-300 shadow-md ring-2 ring-gray-200'
+                       : 'bg-white border-gray-200 hover:border-green-300 hover:bg-green-25 hover:shadow-md'
+                     }
+                  `}
+                >
+                  <input
+                    type="checkbox"
+                    checked={isChecked}
+                    onChange={() => handleSymptomChange(symptom)}
+                    className="sr-only"
+                  />
+                  
+                  {/* Custom Checkbox */}
+                  <div className={`
+                    relative w-5 h-5 rounded-md border-2 flex items-center justify-center
+                    transition-all duration-200
+                                         ${isChecked 
+                       ? symptom === 'fever' ? 'border-red-500 bg-red-500'
+                         : symptom === 'dyspnea' ? 'border-blue-500 bg-blue-500'
+                         : symptom === 'cough' ? 'border-orange-500 bg-orange-500'
+                         : symptom === 'wheezing' ? 'border-purple-500 bg-purple-500'
+                         : 'border-gray-500 bg-gray-500'
+                       : 'border-gray-300 bg-white group-hover:border-green-400'
+                     }
+                  `}>
+                    {isChecked && (
+                      <svg 
+                        className="w-3 h-3 text-white" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth={3} 
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                    )}
+                  </div>
+                  
+                  {/* Content */}
+                  <div className="flex items-center gap-3 flex-1">
+                    <span className="text-2xl">{symptomConfig.icon}</span>
+                    <div className="flex-1">
+                                             <div className={`font-semibold transition-colors ${
+                         isChecked 
+                           ? symptom === 'fever' ? 'text-red-800' 
+                             : symptom === 'dyspnea' ? 'text-blue-800'
+                             : symptom === 'cough' ? 'text-orange-800'
+                             : symptom === 'wheezing' ? 'text-purple-800'
+                             : 'text-gray-800'
+                           : 'text-gray-700'
+                       }`}>
+                         {symptomConfig.label}
+                       </div>
+                      <div className="text-xs text-gray-500 mt-0.5">
+                        {symptom === "fever" && "Nhiệt độ cơ thể cao"}
+                        {symptom === "dyspnea" && "Khó khăn trong hô hấp"}
+                        {symptom === "cough" && "Ho khan hoặc có đờm"}
+                        {symptom === "wheezing" && "Tiếng rít khi thở"}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Indicator dot */}
+                                     {isChecked && (
+                     <div className={`w-2 h-2 rounded-full animate-pulse ${
+                       symptom === 'fever' ? 'bg-red-400'
+                       : symptom === 'dyspnea' ? 'bg-blue-400'
+                       : symptom === 'cough' ? 'bg-orange-400'
+                       : symptom === 'wheezing' ? 'bg-purple-400'
+                       : 'bg-gray-400'
+                     }`}></div>
+                   )}
+                </label>
+              );
+            })}
+          </div>
+          
+          {/* Selected count indicator */}
+          {clinicalInfo.symptoms.length > 0 && (
+            <div className="mt-4 p-3 bg-white rounded-lg border border-green-200 text-center">
+              <span className="text-sm font-medium text-green-700">
+                ✅ Đã chọn {clinicalInfo.symptoms.length} triệu chứng
+              </span>
+            </div>
+          )}
         </div>
         
         {/* 🚀 API Mode Toggle */}
