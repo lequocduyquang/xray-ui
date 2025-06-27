@@ -294,9 +294,9 @@ export default function Index() {
       {/* Form */}
       <form
         onSubmit={handleSubmit}
-        className="flex flex-col items-center justify-center gap-4 w-full max-w-md mt-6"
+        className="w-full max-w-6xl mx-auto mt-6 space-y-6"
       >
-        {/* File Upload Section */}
+        {/* File Upload Section - Full Width */}
         <div className="w-full bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100 shadow-sm">
           <div className="text-center mb-4">
             <h3 className="text-lg font-semibold text-blue-700 mb-2 flex items-center justify-center gap-2">
@@ -387,24 +387,30 @@ export default function Index() {
             </div>
           )}
         </div>
-        <div className="flex flex-col items-center w-full">
-          <label className="text-pretty text-green-500 mb-2 text-center">
-            Chẩn đoán ban đầu
-          </label>
-          <select
-            value={clinicalInfo.initial_diagnosis}
-            onChange={handleDiagnosisChange}
-            className="w-3/4 p-2 border border-blue-300 rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
-          >
-            <option value="">Chọn chẩn đoán</option>
-            {validLabels.map((label) => (
-              <option key={label} value={label}>
-                {label}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="w-full bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-5 border border-green-100 shadow-sm">
+
+        {/* Two Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left Column - Initial Diagnosis */}
+          <div className="flex flex-col items-center w-full">
+            <label className="text-pretty text-green-500 mb-2 text-center">
+              Chẩn đoán ban đầu
+            </label>
+            <select
+              value={clinicalInfo.initial_diagnosis}
+              onChange={handleDiagnosisChange}
+              className="w-full p-2 border border-blue-300 rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
+            >
+              <option value="">Chọn chẩn đoán</option>
+              {validLabels.map((label) => (
+                <option key={label} value={label}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
+          
+          {/* Right Column - Symptoms */}
+          <div className="w-full bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-5 border border-green-100 shadow-sm">
           <div className="text-center mb-4">
             <h3 className="text-lg font-semibold text-green-700 mb-1 flex items-center justify-center gap-2">
               <span className="text-xl">🩺</span>
@@ -522,9 +528,10 @@ export default function Index() {
               </span>
             </div>
           )}
+          </div>
         </div>
         
-        {/* 🚀 API Mode Toggle */}
+        {/* 🚀 API Mode Toggle - Full Width */}
         <div className="w-full bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
           <div className="text-center mb-3">
             <h3 className="text-sm font-semibold text-blue-700 mb-1">🚀 Chế độ phân tích</h3>
