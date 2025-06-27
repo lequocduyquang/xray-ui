@@ -296,21 +296,95 @@ export default function Index() {
         onSubmit={handleSubmit}
         className="flex flex-col items-center justify-center gap-4 w-full max-w-md mt-6"
       >
-        <div className="flex flex-col items-center w-full">
-          <label className="text-pretty text-green-500 mb-2 text-center">
-            Chọn ảnh X-quang
-          </label>
-          <div className="flex justify-center w-full">
+        {/* File Upload Section */}
+        <div className="w-full bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 border border-blue-100 shadow-sm">
+          <div className="text-center mb-4">
+            <h3 className="text-lg font-semibold text-blue-700 mb-2 flex items-center justify-center gap-2">
+              <span className="text-xl">📸</span>
+              Tải lên ảnh X-quang
+            </h3>
+            <p className="text-sm text-blue-600">Hỗ trợ DICOM, PNG, JPEG (tối đa 10MB)</p>
+          </div>
+          
+          <div className="relative group">
             <input
               type="file"
               accept=".dcm,.dicom,image/png,image/jpeg"
               onChange={handleFileChange}
-              className="text-sm text-gray-500"
-              style={{ textAlign: "center" }}
+              className="sr-only"
+              id="file-upload"
             />
+            <label
+              htmlFor="file-upload"
+              className={`
+                relative flex flex-col items-center justify-center w-full h-32 
+                border-2 border-dashed rounded-xl cursor-pointer transition-all duration-300
+                ${file 
+                  ? 'border-green-400 bg-green-50 hover:bg-green-100' 
+                  : 'border-blue-300 bg-white hover:bg-blue-50 hover:border-blue-500 group-hover:border-blue-500'
+                }
+              `}
+            >
+              <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                {file ? (
+                  <>
+                    <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mb-3">
+                      <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                      </svg>
+                    </div>
+                    <p className="text-sm font-semibold text-green-700 mb-1">✅ Đã chọn file thành công</p>
+                    <p className="text-xs text-green-600 text-center max-w-48 truncate">{file.name}</p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      {(file.size / 1024 / 1024).toFixed(2)} MB
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-3 group-hover:bg-blue-200 transition-colors">
+                      <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                      </svg>
+                    </div>
+                    <p className="text-sm font-semibold text-gray-700 mb-1">Nhấn để chọn file</p>
+                    <p className="text-xs text-gray-500">hoặc kéo thả file vào đây</p>
+                    <div className="flex items-center gap-2 mt-2">
+                      <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">DICOM</span>
+                      <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">PNG</span>
+                      <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded">JPEG</span>
+                    </div>
+                  </>
+                )}
+              </div>
+            </label>
           </div>
+          
           {file && (
-            <span className="mt-2 text-sm text-blue-400">{file.name}</span>
+            <div className="mt-4 p-4 bg-white rounded-lg border border-blue-200 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">📄</span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-blue-800 truncate">{file.name}</p>
+                    <p className="text-xs text-blue-600">
+                      {(file.size / 1024 / 1024).toFixed(2)} MB • Sẵn sàng phân tích
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFile(null)}
+                  className="p-2 hover:bg-red-100 rounded-full transition-colors group"
+                  title="Xóa file"
+                >
+                  <svg className="w-4 h-4 text-red-500 group-hover:text-red-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
           )}
         </div>
         <div className="flex flex-col items-center w-full">
