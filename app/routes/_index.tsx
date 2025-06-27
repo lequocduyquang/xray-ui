@@ -25,12 +25,58 @@ type AnalyzeResponse = {
     };
     binaryProbabilities: Record<string, number>;
     predictedClass: string;
+    confidence?: number;
     classLabels: string[];
     multiLabelTop: Record<string, MultiLabel>;
     allMultiLabelScores: MultiLabel[];
     warnings?: string[];
     cloudinaryId?: string;
     modelName?: string;
+    // 🚀 Enhanced Analysis from Optimized API
+    enhanced_analysis?: {
+      system_type: string;
+      optimization_features?: string[];
+      models_used: string[];
+      onnx_analysis?: {
+        diagnosis: string;
+        confidence: number;
+        stage?: string;
+      };
+      gpt4o_analysis?: {
+        diagnosis: string;
+        confidence: number;
+        findings?: string[];
+        reasoning?: string;
+        recommendations?: string[];
+      };
+      ai_agreement?: {
+        disagreement_detected: boolean;
+        agreement_level?: string;
+      };
+      professor_analysis?: {
+        triggered: boolean;
+        success?: boolean;
+        expert_diagnosis?: string;
+        confidence?: number;
+        risk_assessment?: string;
+      };
+      final_decision?: {
+        diagnosis: string;
+        confidence: number;
+        decision_maker: string;
+        reasoning?: string;
+      };
+      performance_metrics?: {
+        total_processing_time: number;
+        optimization_applied: boolean;
+        parallel_execution?: boolean;
+        fallback_mode?: string | boolean;
+        gpt4o_cost_usd?: number;
+        professor_cost_usd?: number;
+        total_cost_usd?: number;
+        estimated_speedup?: string;
+      };
+    };
   };
 };
 
@@ -57,6 +103,8 @@ export default function Index() {
   const [eigencamUrl, setEigencamUrl] = useState<string | null>(null);
   const [loadingEigencam, setLoadingEigencam] = useState(false);
   const [eigencamError, setEigencamError] = useState<string | null>(null);
+  const [useOptimizedAPI, setUseOptimizedAPI] = useState(true); // 🚀 Use optimized API by default
+  const [showEnhancedDetails, setShowEnhancedDetails] = useState(false);
 
   const validLabels = ["Normal", "Pneumonia"];
   const symptomOptions = ["fever", "dyspnea", "cough", "wheezing"];
@@ -102,7 +150,11 @@ export default function Index() {
     setEigencamError(null);
 
     try {
-      const apiUrl = `https://xray-diagnosis-ai.onrender.com/api/analyze`;
+      // 🚀 Use optimized API endpoint
+      const endpoint = useOptimizedAPI ? "analyze-optimized" : "analyze";
+      const apiUrl = `https://xray-diagnosis-ai.onrender.com/api/${endpoint}`;
+      console.log(`🚀 Using ${useOptimizedAPI ? 'OPTIMIZED' : 'STANDARD'} API: ${apiUrl}`);
+      
       const res = await fetch(apiUrl, {
         method: "POST",
         body: formData,
@@ -249,6 +301,39 @@ export default function Index() {
             ))}
           </div>
         </div>
+        
+        {/* 🚀 API Mode Toggle */}
+        <div className="flex flex-col items-center w-full">
+          <label className="text-pretty text-blue-500 mb-2 text-center">
+            Chế độ API
+          </label>
+          <div className="flex items-center gap-3">
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="radio"
+                name="apiMode"
+                checked={useOptimizedAPI}
+                onChange={() => setUseOptimizedAPI(true)}
+                className="accent-blue-600"
+              />
+              <span className="font-medium text-gray-700">
+                ⚡ Optimized (Nhanh hơn 30-50%)
+              </span>
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="radio"
+                name="apiMode"
+                checked={!useOptimizedAPI}
+                onChange={() => setUseOptimizedAPI(false)}
+                className="accent-gray-600"
+              />
+              <span className="font-medium text-gray-700">
+                🔄 Standard (Truyền thống)
+              </span>
+            </label>
+          </div>
+        </div>
         <button
           type="submit"
           disabled={!file || loading}
@@ -309,7 +394,149 @@ export default function Index() {
                 ? "Bệnh nhân có dấu hiệu viêm phổi."
                 : "Phổi bình thường."}
             </span>
+            {result.data.confidence && (
+              <span className="ml-2 text-sm text-blue-600">
+                ({(result.data.confidence * 100).toFixed(1)}% tin cậy)
+              </span>
+            )}
           </div>
+          
+          {/* 🚀 Enhanced Analysis Display */}
+          {result.data.enhanced_analysis && (
+            <div className="mb-4 p-3 bg-blue-50 rounded border">
+              <div className="flex justify-between items-center mb-2">
+                <span className="font-medium text-blue-700">
+                  🚀 Thông tin hệ thống AI
+                </span>
+                <button
+                  onClick={() => setShowEnhancedDetails(!showEnhancedDetails)}
+                  className="text-xs text-blue-600 hover:text-blue-800"
+                >
+                  {showEnhancedDetails ? "Ẩn" : "Hiện"} chi tiết
+                </button>
+              </div>
+              
+              <div className="text-sm text-gray-700">
+                <div className="mb-1">
+                  <span className="font-medium">Hệ thống: </span>
+                  <span className="text-blue-600">{result.data.enhanced_analysis.system_type}</span>
+                </div>
+                
+                {result.data.enhanced_analysis.models_used && (
+                  <div className="mb-1">
+                    <span className="font-medium">AI Models: </span>
+                    <span className="text-green-600">
+                      {result.data.enhanced_analysis.models_used.join(", ")}
+                    </span>
+                  </div>
+                )}
+                
+                {result.data.enhanced_analysis.final_decision && (
+                  <div className="mb-1">
+                    <span className="font-medium">Quyết định cuối: </span>
+                    <span className="text-purple-600">
+                      {result.data.enhanced_analysis.final_decision.decision_maker}
+                    </span>
+                  </div>
+                )}
+                
+                {result.data.enhanced_analysis.performance_metrics && (
+                  <div className="mb-1">
+                    <span className="font-medium">Thời gian xử lý: </span>
+                    <span className="text-orange-600">
+                      {(result.data.enhanced_analysis.performance_metrics.total_processing_time / 1000).toFixed(1)}s
+                    </span>
+                    {result.data.enhanced_analysis.performance_metrics.estimated_speedup && (
+                      <span className="ml-2 text-green-600 text-xs">
+                        ({result.data.enhanced_analysis.performance_metrics.estimated_speedup})
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+              
+              {showEnhancedDetails && (
+                <div className="mt-3 pt-3 border-t border-blue-200">
+                  {/* AI Agreement Status */}
+                  {result.data.enhanced_analysis.ai_agreement && (
+                    <div className="mb-2">
+                      <span className="font-medium text-gray-700">AI Agreement: </span>
+                      <span className={
+                        result.data.enhanced_analysis.ai_agreement.disagreement_detected 
+                          ? "text-red-600" 
+                          : "text-green-600"
+                      }>
+                        {result.data.enhanced_analysis.ai_agreement.disagreement_detected 
+                          ? "⚠️ Disagreement detected" 
+                          : "✅ AIs agree"}
+                      </span>
+                    </div>
+                  )}
+                  
+                  {/* Professor AI Status */}
+                  {result.data.enhanced_analysis.professor_analysis && (
+                    <div className="mb-2">
+                      <span className="font-medium text-gray-700">Professor AI: </span>
+                      <span className={
+                        result.data.enhanced_analysis.professor_analysis.triggered
+                          ? "text-blue-600" 
+                          : "text-gray-500"
+                      }>
+                        {result.data.enhanced_analysis.professor_analysis.triggered 
+                          ? `🩺 Activated (${result.data.enhanced_analysis.professor_analysis.expert_diagnosis})` 
+                          : "Not needed"}
+                      </span>
+                    </div>
+                  )}
+                  
+                  {/* Individual AI Results */}
+                  {result.data.enhanced_analysis.onnx_analysis && (
+                    <div className="mb-2">
+                      <span className="font-medium text-gray-700">ONNX Models: </span>
+                      <span className="text-blue-600">
+                        {result.data.enhanced_analysis.onnx_analysis.diagnosis} 
+                        ({(result.data.enhanced_analysis.onnx_analysis.confidence * 100).toFixed(1)}%)
+                      </span>
+                    </div>
+                  )}
+                  
+                  {result.data.enhanced_analysis.gpt4o_analysis && (
+                    <div className="mb-2">
+                      <span className="font-medium text-gray-700">GPT-4o: </span>
+                      <span className="text-green-600">
+                        {result.data.enhanced_analysis.gpt4o_analysis.diagnosis} 
+                        ({(result.data.enhanced_analysis.gpt4o_analysis.confidence * 100).toFixed(1)}%)
+                      </span>
+                    </div>
+                  )}
+                  
+                  {/* Cost Information */}
+                  {result.data.enhanced_analysis.performance_metrics?.total_cost_usd && (
+                    <div className="mb-2">
+                      <span className="font-medium text-gray-700">Cost: </span>
+                      <span className="text-purple-600">
+                        ${result.data.enhanced_analysis.performance_metrics.total_cost_usd.toFixed(4)} USD
+                      </span>
+                    </div>
+                  )}
+                  
+                  {/* Optimization Features */}
+                  {result.data.enhanced_analysis.optimization_features && (
+                    <div className="mb-2">
+                      <span className="font-medium text-gray-700">Optimizations: </span>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {result.data.enhanced_analysis.optimization_features.map((feature, idx) => (
+                          <span key={idx} className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                            {feature.replace(/_/g, ' ')}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
           <div className="mb-2">
             <span className="font-medium text-blue-600">
               Xác suất nhị phân:
@@ -368,16 +595,16 @@ export default function Index() {
                 </table>
               )}
           </div>
-          {/* {result.data.warnings && result.data.warnings.length > 0 && (
+          {result.data.warnings && result.data.warnings.length > 0 && (
             <div className="mb-2">
-              <span className="font-medium text-red-600">Cảnh báo:</span>
-              <ul className="list-disc list-inside ml-4 text-red-700">
+              <span className="font-medium text-orange-600">Thông báo hệ thống:</span>
+              <ul className="list-disc list-inside ml-4 text-orange-700">
                 {result.data.warnings.map((warning, idx) => (
-                  <li key={idx}>{warning}</li>
+                  <li key={idx} className="text-sm">{warning}</li>
                 ))}
               </ul>
-            </div>
-          )} */}
+                          </div>
+           )}
 
           {/* Eigencam Button */}
           {result.data.cloudinaryId && result.data.modelName && (
