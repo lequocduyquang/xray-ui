@@ -303,34 +303,59 @@ export default function Index() {
         </div>
         
         {/* 🚀 API Mode Toggle */}
-        <div className="flex flex-col items-center w-full">
-          <label className="text-pretty text-blue-500 mb-2 text-center">
-            Chế độ API
-          </label>
-          <div className="flex items-center gap-3">
-            <label className="flex items-center gap-2 text-sm">
+        <div className="w-full bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
+          <div className="text-center mb-3">
+            <h3 className="text-sm font-semibold text-blue-700 mb-1">🚀 Chế độ phân tích</h3>
+            <p className="text-xs text-gray-600">Chọn phương thức xử lý phù hợp</p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <label className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+              useOptimizedAPI 
+                ? 'border-blue-500 bg-blue-100 shadow-md' 
+                : 'border-gray-200 bg-white hover:border-blue-300'
+            }`}>
               <input
                 type="radio"
                 name="apiMode"
                 checked={useOptimizedAPI}
                 onChange={() => setUseOptimizedAPI(true)}
-                className="accent-blue-600"
+                className="hidden"
               />
-              <span className="font-medium text-gray-700">
-                ⚡ Optimized (Nhanh hơn 30-50%)
-              </span>
+              <div className="flex items-center gap-2">
+                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                  useOptimizedAPI ? 'border-blue-500 bg-blue-500' : 'border-gray-300'
+                }`}>
+                  {useOptimizedAPI && <div className="w-2 h-2 bg-white rounded-full"></div>}
+                </div>
+                <div>
+                  <div className="font-medium text-gray-800 text-sm">⚡ Optimized</div>
+                  <div className="text-xs text-gray-500">Nhanh hơn 30-50%</div>
+                </div>
+              </div>
             </label>
-            <label className="flex items-center gap-2 text-sm">
+            <label className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all ${
+              !useOptimizedAPI 
+                ? 'border-gray-500 bg-gray-100 shadow-md' 
+                : 'border-gray-200 bg-white hover:border-gray-300'
+            }`}>
               <input
                 type="radio"
                 name="apiMode"
                 checked={!useOptimizedAPI}
                 onChange={() => setUseOptimizedAPI(false)}
-                className="accent-gray-600"
+                className="hidden"
               />
-              <span className="font-medium text-gray-700">
-                🔄 Standard (Truyền thống)
-              </span>
+              <div className="flex items-center gap-2">
+                <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                  !useOptimizedAPI ? 'border-gray-500 bg-gray-500' : 'border-gray-300'
+                }`}>
+                  {!useOptimizedAPI && <div className="w-2 h-2 bg-white rounded-full"></div>}
+                </div>
+                <div>
+                  <div className="font-medium text-gray-800 text-sm">🔄 Standard</div>
+                  <div className="text-xs text-gray-500">Truyền thống</div>
+                </div>
+              </div>
             </label>
           </div>
         </div>
@@ -507,48 +532,92 @@ export default function Index() {
               )}
             </div>
           )}
-          <div className="mb-2">
-            <span className="font-medium text-blue-600">
-              Xác suất:
-            </span>
-            <ul className="list-disc list-inside ml-4">
+          <div className="mb-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg p-4 border border-blue-100">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                <span className="text-white text-xs font-bold">%</span>
+              </div>
+              <h3 className="font-semibold text-blue-700">Xác suất phân tích</h3>
+            </div>
+            <div className="space-y-2">
               {Object.entries(result.data.binaryProbabilities).map(
                 ([label, prob]) => (
-                  <li key={label} className="text-gray-700">
-                    {label}: {(prob * 100).toFixed(2)}%
-                  </li>
+                  <div key={label} className="flex items-center justify-between bg-white rounded-lg p-3 shadow-sm">
+                    <span className="font-medium text-gray-800">{label}</span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-24 bg-gray-200 rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full ${label === 'Pneumonia' ? 'bg-red-500' : 'bg-green-500'}`}
+                          style={{ width: `${(prob as number * 100)}%` }}
+                        ></div>
+                      </div>
+                      <span className={`font-bold text-sm ${label === 'Pneumonia' ? 'text-red-600' : 'text-green-600'}`}>
+                        {((prob as number) * 100).toFixed(1)}%
+                      </span>
+                    </div>
+                  </div>
                 )
               )}
-            </ul>
+            </div>
           </div>
-          <div className="mb-2">
-            <span className="font-medium text-indigo-600">
-              Tất cả chẩn đoán phụ:
-            </span>
-            {Array.isArray(result.data.allMultiLabelScores) &&
-              result.data.allMultiLabelScores.length > 0 && (
-                <table className="min-w-full text-xs mt-2 bg-white rounded shadow">
-                  <thead>
-                    <tr className="bg-blue-100">
-                      <th className="text-left pr-4 py-1 text-gray-700">Tên</th>
-                      <th className="text-left py-1 text-gray-700">Xác suất</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {result.data.allMultiLabelScores.map((item, idx) => (
-                      <tr
-                        key={item.label}
-                        className={idx % 2 === 0 ? "bg-gray-50" : "bg-gray-100"}
-                      >
-                        <td className="pr-4 py-1 text-gray-800">{item.label}</td>
-                        <td className="py-1 text-gray-800">
-                          {(typeof item.score === 'number' && !isNaN(item.score) ? (item.score * 100).toFixed(2) : '0.00')}%
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
+          <div className="mb-4">
+            <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-4 border border-indigo-100">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-6 h-6 bg-indigo-500 rounded-full flex items-center justify-center">
+                  <span className="text-white text-xs font-bold">📊</span>
+                </div>
+                <h3 className="font-semibold text-indigo-700">Chi tiết chẩn đoán</h3>
+              </div>
+              
+              {Array.isArray(result.data.allMultiLabelScores) &&
+                result.data.allMultiLabelScores.length > 0 && (
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {result.data.allMultiLabelScores
+                      .sort((a, b) => (b.score || 0) - (a.score || 0)) // Sort by score descending
+                      .map((item, idx) => {
+                        const score = typeof item.score === 'number' && !isNaN(item.score) ? item.score : 0;
+                        const percentage = (score * 100).toFixed(1);
+                        const isHighScore = score > 0.5;
+                        
+                        return (
+                          <div
+                            key={item.label}
+                            className={`flex items-center justify-between p-3 rounded-lg border transition-all hover:shadow-sm ${
+                              isHighScore 
+                                ? 'bg-red-50 border-red-200' 
+                                : score > 0.1 
+                                  ? 'bg-yellow-50 border-yellow-200' 
+                                  : 'bg-green-50 border-green-200'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className={`w-3 h-3 rounded-full ${
+                                isHighScore ? 'bg-red-500' : score > 0.1 ? 'bg-yellow-500' : 'bg-green-500'
+                              }`}></div>
+                              <span className="font-medium text-gray-800 text-sm">{item.label}</span>
+                            </div>
+                            
+                            <div className="flex items-center gap-2">
+                              <div className="w-16 bg-gray-200 rounded-full h-1.5">
+                                <div 
+                                  className={`h-1.5 rounded-full ${
+                                    isHighScore ? 'bg-red-500' : score > 0.1 ? 'bg-yellow-500' : 'bg-green-500'
+                                  }`}
+                                  style={{ width: `${Math.max(score * 100, 2)}%` }} // Minimum 2% for visibility
+                                ></div>
+                              </div>
+                              <span className={`font-bold text-xs min-w-[3rem] text-right ${
+                                isHighScore ? 'text-red-600' : score > 0.1 ? 'text-yellow-600' : 'text-green-600'
+                              }`}>
+                                {percentage}%
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                )}
+            </div>
           </div>
           {result.data.warnings && result.data.warnings.length > 0 && (
             <div className="mb-2">
