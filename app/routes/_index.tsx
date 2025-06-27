@@ -431,15 +431,6 @@ export default function Index() {
                   </div>
                 )}
                 
-                {result.data.enhanced_analysis.final_decision && (
-                  <div className="mb-1">
-                    <span className="font-medium">Quyết định cuối: </span>
-                    <span className="text-purple-600">
-                      {result.data.enhanced_analysis.final_decision.decision_maker}
-                    </span>
-                  </div>
-                )}
-                
                 {result.data.enhanced_analysis.performance_metrics && (
                   <div className="mb-1">
                     <span className="font-medium">Thời gian xử lý: </span>
@@ -489,27 +480,6 @@ export default function Index() {
                     </div>
                   )}
                   
-                  {/* Individual AI Results */}
-                  {result.data.enhanced_analysis.onnx_analysis && (
-                    <div className="mb-2">
-                      <span className="font-medium text-gray-700">ONNX Models: </span>
-                      <span className="text-blue-600">
-                        {result.data.enhanced_analysis.onnx_analysis.diagnosis} 
-                        ({(result.data.enhanced_analysis.onnx_analysis.confidence * 100).toFixed(1)}%)
-                      </span>
-                    </div>
-                  )}
-                  
-                  {result.data.enhanced_analysis.gpt4o_analysis && (
-                    <div className="mb-2">
-                      <span className="font-medium text-gray-700">GPT-4o: </span>
-                      <span className="text-green-600">
-                        {result.data.enhanced_analysis.gpt4o_analysis.diagnosis} 
-                        ({(result.data.enhanced_analysis.gpt4o_analysis.confidence * 100).toFixed(1)}%)
-                      </span>
-                    </div>
-                  )}
-                  
                   {/* Cost Information */}
                   {result.data.enhanced_analysis.performance_metrics?.total_cost_usd && (
                     <div className="mb-2">
@@ -539,7 +509,7 @@ export default function Index() {
           )}
           <div className="mb-2">
             <span className="font-medium text-blue-600">
-              Xác suất nhị phân:
+              Xác suất:
             </span>
             <ul className="list-disc list-inside ml-4">
               {Object.entries(result.data.binaryProbabilities).map(
@@ -551,21 +521,6 @@ export default function Index() {
               )}
             </ul>
           </div>
-          {result.data.multiLabelTop &&
-            Object.values(result.data.multiLabelTop).length > 0 && (
-              <div className="mb-2">
-                <span className="font-medium text-purple-600">
-                  Top chẩn đoán phụ:
-                </span>
-                <ul className="list-disc list-side ml-4">
-                  {Object.values(result.data.multiLabelTop).map((item, idx) => (
-                    <li key={idx} className="text-gray-700">
-                      {item.label}: {(item.score * 100).toFixed(2)}%
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
           <div className="mb-2">
             <span className="font-medium text-indigo-600">
               Tất cả chẩn đoán phụ:
@@ -587,7 +542,7 @@ export default function Index() {
                       >
                         <td className="pr-4 py-1 text-gray-800">{item.label}</td>
                         <td className="py-1 text-gray-800">
-                          {(item.score * 100).toFixed(2)}%
+                          {(typeof item.score === 'number' && !isNaN(item.score) ? (item.score * 100).toFixed(2) : '0.00')}%
                         </td>
                       </tr>
                     ))}
@@ -598,12 +553,25 @@ export default function Index() {
           {result.data.warnings && result.data.warnings.length > 0 && (
             <div className="mb-2">
               <span className="font-medium text-orange-600">Thông báo hệ thống:</span>
-              <ul className="list-disc list-inside ml-4 text-orange-700">
+              <ul className="list-disc list-inside ml-4">
                 {result.data.warnings.map((warning, idx) => (
-                  <li key={idx} className="text-sm">{warning}</li>
+                  <li 
+                    key={idx} 
+                    className={
+                      warning.includes('🚨 MEDICAL SAFETY ALERT') 
+                        ? "text-red-900 text-sm font-bold bg-red-100 px-3 py-2 rounded-lg border-l-4 border-red-600 my-2 shadow-md" 
+                        : warning.includes('⚠️') && warning.includes('Consider ONNX diagnosis')
+                        ? "text-orange-800 text-sm font-medium bg-orange-100 px-3 py-2 rounded-lg border-l-4 border-orange-500 my-1"
+                        : warning.includes('🩺') && warning.includes('safety')
+                        ? "text-blue-800 text-sm font-medium bg-blue-100 px-3 py-2 rounded-lg border-l-4 border-blue-500 my-1"
+                        : "text-orange-700 text-sm"
+                    }
+                  >
+                    {warning}
+                  </li>
                 ))}
               </ul>
-                          </div>
+            </div>
            )}
 
           {/* Eigencam Button */}
