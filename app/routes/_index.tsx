@@ -109,9 +109,69 @@ export default function Index() {
   const validLabels = ["Normal", "Pneumonia"];
   const symptomOptions = ["fever", "dyspnea", "cough", "wheezing"];
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Compress image before upload to reduce memory usage
+  const compressImage = (file: File): Promise<File> => {
+    return new Promise((resolve) => {
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      const img = new Image();
+      
+      img.onload = () => {
+        // Resize to max 800x800 to reduce file size
+        const maxSize = 800;
+        let { width, height } = img;
+        
+        if (width > height) {
+          if (width > maxSize) {
+            height = (height * maxSize) / width;
+            width = maxSize;
+          }
+        } else {
+          if (height > maxSize) {
+            width = (width * maxSize) / height;
+            height = maxSize;
+          }
+        }
+        
+        canvas.width = width;
+        canvas.height = height;
+        ctx?.drawImage(img, 0, 0, width, height);
+        
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const compressedFile = new File([blob], file.name, {
+              type: 'image/jpeg',
+              lastModified: Date.now(),
+            });
+            resolve(compressedFile);
+          } else {
+            resolve(file); // Fallback to original
+          }
+        }, 'image/jpeg', 0.8); // 80% quality
+      };
+      
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0]);
+      const originalFile = e.target.files[0];
+      
+      // Compress image if it's larger than 1MB
+      if (originalFile.size > 1024 * 1024) {
+        try {
+          const compressedFile = await compressImage(originalFile);
+          console.log(`📉 Image compressed: ${(originalFile.size / 1024 / 1024).toFixed(2)}MB → ${(compressedFile.size / 1024 / 1024).toFixed(2)}MB`);
+          setFile(compressedFile);
+        } catch (error) {
+          console.warn('Compression failed, using original:', error);
+          setFile(originalFile);
+        }
+      } else {
+        setFile(originalFile);
+      }
+      
       setResult(null);
       setError(null);
       setEigencamUrl(null);
