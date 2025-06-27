@@ -391,22 +391,107 @@ export default function Index() {
         {/* Two Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Left Column - Initial Diagnosis */}
-          <div className="flex flex-col items-center w-full">
-            <label className="text-pretty text-green-500 mb-2 text-center">
-              Chẩn đoán ban đầu
-            </label>
-            <select
-              value={clinicalInfo.initial_diagnosis}
-              onChange={handleDiagnosisChange}
-              className="w-full p-2 border border-blue-300 rounded bg-white text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
-            >
-              <option value="">Chọn chẩn đoán</option>
-              {validLabels.map((label) => (
-                <option key={label} value={label}>
-                  {label}
-                </option>
-              ))}
-            </select>
+          <div className="w-full bg-gradient-to-br from-orange-50 to-amber-50 rounded-xl p-5 border border-orange-100 shadow-sm">
+            <div className="text-center mb-4">
+              <h3 className="text-lg font-semibold text-orange-700 mb-1 flex items-center justify-center gap-2">
+                <span className="text-xl">🩺</span>
+                Chẩn đoán ban đầu
+              </h3>
+              <p className="text-sm text-orange-600">Chọn chẩn đoán sơ bộ dựa trên quan sát</p>
+            </div>
+            <div className="space-y-3">
+              {validLabels.map((label) => {
+                const isSelected = clinicalInfo.initial_diagnosis === label;
+                const config = {
+                  Normal: {
+                    icon: "✅",
+                    label: "Phổi bình thường",
+                    color: "green",
+                    description: "Không có dấu hiệu bất thường"
+                  },
+                  Pneumonia: {
+                    icon: "⚠️", 
+                    label: "Viêm phổi",
+                    color: "red",
+                    description: "Có dấu hiệu viêm hoặc nhiễm trùng"
+                  }
+                }[label] || { icon: "📋", label: label, color: "gray", description: "Chẩn đoán khác" };
+                
+                return (
+                  <label
+                    key={label}
+                    className={`
+                      relative flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer 
+                      transition-all duration-200 ease-in-out transform hover:scale-[1.02]
+                      ${isSelected 
+                        ? config.color === 'green' 
+                          ? 'bg-green-50 border-green-300 shadow-md ring-2 ring-green-200' 
+                          : 'bg-red-50 border-red-300 shadow-md ring-2 ring-red-200'
+                        : 'bg-white border-gray-200 hover:border-orange-300 hover:bg-orange-25 hover:shadow-md'
+                      }
+                    `}
+                  >
+                    <input
+                      type="radio"
+                      name="initial_diagnosis"
+                      value={label}
+                      checked={isSelected}
+                      onChange={(e) => setClinicalInfo({ ...clinicalInfo, initial_diagnosis: e.target.value })}
+                      className="sr-only"
+                    />
+                    
+                    {/* Custom Radio Button */}
+                    <div className={`
+                      relative w-5 h-5 rounded-full border-2 flex items-center justify-center
+                      transition-all duration-200
+                      ${isSelected 
+                        ? config.color === 'green' 
+                          ? 'border-green-500 bg-green-500' 
+                          : 'border-red-500 bg-red-500'
+                        : 'border-gray-300 bg-white group-hover:border-orange-400'
+                      }
+                    `}>
+                      {isSelected && (
+                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                      )}
+                    </div>
+                    
+                    {/* Content */}
+                    <div className="flex items-center gap-3 flex-1">
+                      <span className="text-2xl">{config.icon}</span>
+                      <div className="flex-1">
+                        <div className={`font-semibold transition-colors ${
+                          isSelected 
+                            ? config.color === 'green' ? 'text-green-800' : 'text-red-800'
+                            : 'text-gray-700'
+                        }`}>
+                          {config.label}
+                        </div>
+                        <div className="text-xs text-gray-500 mt-0.5">
+                          {config.description}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Indicator dot */}
+                    {isSelected && (
+                      <div className={`w-2 h-2 rounded-full animate-pulse ${
+                        config.color === 'green' ? 'bg-green-400' : 'bg-red-400'
+                      }`}></div>
+                    )}
+                  </label>
+                );
+              })}
+            </div>
+            
+            {/* Selected count indicator */}
+            {clinicalInfo.initial_diagnosis && (
+              <div className="mt-4 p-3 bg-white rounded-lg border border-orange-200 text-center">
+                <span className="text-sm font-medium text-orange-700">
+                  🎯 Đã chọn chẩn đoán ban đầu
+                </span>
+              </div>
+            )}
           </div>
           
           {/* Right Column - Symptoms */}
